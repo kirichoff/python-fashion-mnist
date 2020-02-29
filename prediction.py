@@ -1,22 +1,29 @@
-import cv2
-import pickle
-import os.path
 import numpy as np
-from imutils import paths
+from keras.preprocessing import image
 import tensorflow as tf
 
-import image_fit
-
-
 LETTER_IMAGES_FOLDER = "training_generate/divided_sample"
-MODEL_FILENAME = "captcha_model.hdf5"
-MODEL_LABELS_FILENAME = "model_labels.dat"
+MODEL_FILENAME = "Fashion-model.h5"
+class_names = [i.strip() for i in open("./clases.dat").readlines()]
 
-image_file = 'test_0.bmp'
-image = cv2.imread(image_file)
-image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-image = image_fit.resize_to_fit(image, 12, 22)
+
+def load_image(path):
+    im = image.load_img(path, target_size=(28, 28), color_mode='grayscale')
+    im = image.img_to_array(im)
+    im /= 255.0
+    im = im.reshape(28, 28)
+    im = np.expand_dims(im, axis=0)
+    return im
+
 
 new_model = tf.keras.models.load_model(MODEL_FILENAME)
-predicitions = new_model.predict(image)
-print(np.argmax(predicitions[0]))
+
+test_images = ['./t-shirt.jpg', './t-shirt2.png', './dr1.png', './dr.png', './dr2.png', './images.jfif', './dress.jpg',
+               './shoes.jpg']
+
+for key in test_images:
+    print(key)
+    result = load_image(key)
+    predictions_single = new_model.predict(result)
+    predicted_label = np.argmax(predictions_single)
+    print(class_names[predicted_label], predictions_single, predicted_label)
